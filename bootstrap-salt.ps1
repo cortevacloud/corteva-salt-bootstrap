@@ -1,8 +1,53 @@
 # Enable TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Define the URL of the script to download
-$scriptUrl = "https://github.com/saltstack/salt-bootstrap/releases/latest/download/bootstrap-salt.ps1"
+# Pin the upstream salt-bootstrap script release that successfully installed
+# Salt 3007.13 in Kitchen; this is separate from the Salt package version.
+# Override with -BootstrapScriptUrl <url>; all other args pass through upstream.
+$scriptUrl = "https://github.com/saltstack/salt-bootstrap/releases/download/v2026.01.22/bootstrap-salt.ps1"
+$upstreamArgs = [System.Collections.Generic.List[String]]::new()
+
+for ($i = 0; $i -lt $args.Count; $i++) {
+    if ($args[$i] -eq "-BootstrapScriptUrl") {
+        if ($i + 1 -ge $args.Count) {
+            Write-Host "Missing value for -BootstrapScriptUrl" -ForegroundColor Red
+            exit 1
+        }
+        $scriptUrl = $args[$i + 1]
+        $i++
+    } else {
+        $upstreamArgs.Add($args[$i])
+    }
+}
+
+function Repair-BootstrapScript {
+    param(
+        [Parameter(Mandatory=$true)]
+        [String]$Content
+    )
+
+    # The upstream script currently exits when any version directory name is
+    # longer than 8 characters. Broadcom's Windows package listing now includes
+    # pre-release directories such as 3008.0rc1, which trips that check even
+    # when bootstrapping a stable version like 3007.
+    $lengthCheckPattern = '(?ms)\s*\$response\.links\s*\|\s*ForEach-Object\s*\{\s*if\s*\(\s*\$_.href\.Length\s+-gt\s+8\s*\)\s*\{.*?exit 1\s*\}\s*\}'
+    $patchedContent = [regex]::Replace($Content, $lengthCheckPattern, "")
+
+    $oldVersionFilter = '$filtered = $response.Links | Where-Object -Property href -NE "../"'
+    $newVersionFilter = '$filtered = $response.Links | Where-Object { $_.href -ne "../" -and $_.href.Trim("/") -match "^\d+\.\d+(\.\d+)?$" }'
+
+    if ($patchedContent.Contains($oldVersionFilter)) {
+        $patchedContent = $patchedContent.Replace($oldVersionFilter, $newVersionFilter)
+    }
+
+    if ($patchedContent -ne $Content) {
+        Write-Host "Applied compatibility patch for Salt bootstrap version parsing"
+    } else {
+        Write-Host "Salt bootstrap version parsing patch was not applied" -ForegroundColor Yellow
+    }
+
+    return $patchedContent
+}
 
 # Download the script using Invoke-RestMethod
 Write-Host "Downloading Bootstrap Script"
@@ -17,13 +62,15 @@ try {
 # Write-Host "Downloaded Script Content:"
 # Write-Host $scriptContent
 
+$scriptContent = Repair-BootstrapScript -Content $scriptContent
+
 # Save the script to a temporary file
 $tempScriptPath = [System.IO.Path]::GetTempFileName() + ".ps1"
 Set-Content -Path $tempScriptPath -Value $scriptContent
 
 Write-Host "Executing Bootstrap Script"
 # Execute the downloaded script with the same parameters
-$process =  Start-Process powershell -ArgumentList "-File `"$tempScriptPath`" $($args -join ' ')" -Verb RunAs -Wait  -PassThru
+$process =  Start-Process powershell -ArgumentList "-File `"$tempScriptPath`" $($upstreamArgs -join ' ')" -Verb RunAs -Wait  -PassThru
 
 # Check the exit code and raise an error if it's not 0
 if ($process.ExitCode -ne 0) {
