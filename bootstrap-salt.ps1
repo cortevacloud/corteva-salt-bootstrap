@@ -4,7 +4,7 @@
 # Pin the upstream salt-bootstrap script release that successfully installed
 # Salt 3007.13 in Kitchen; this is separate from the Salt package version.
 # Override with -BootstrapScriptUrl <url>; all other args pass through upstream.
-$scriptUrl = "https://github.com/saltstack/salt-bootstrap/releases/download/v2026.01.22/bootstrap-salt.ps1"
+$scriptUrl = "https://github.com/saltstack/salt-bootstrap/releases/download/v2026.05.20/bootstrap-salt.ps1"
 $upstreamArgs = [System.Collections.Generic.List[String]]::new()
 
 for ($i = 0; $i -lt $args.Count; $i++) {

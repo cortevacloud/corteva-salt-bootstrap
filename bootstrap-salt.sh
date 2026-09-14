@@ -17,7 +17,7 @@ __fetch_url() {
 }
 
 # Download the bootstrap-salt.sh script using __fetch_url
-__fetch_url "bootstrap-salt.sh" "https://github.com/saltstack/salt-bootstrap/releases/latest/download/bootstrap-salt.sh"
+__fetch_url "bootstrap-salt.sh" "https://github.com/saltstack/salt-bootstrap/releases/download/v2026.05.20/bootstrap-salt.sh"
 
 # Run the downloaded script with any passed arguments
 sh bootstrap-salt.sh "$@"
