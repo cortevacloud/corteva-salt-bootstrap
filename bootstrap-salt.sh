@@ -26,14 +26,14 @@ sh bootstrap-salt.sh "$@"
 if [ $? -eq 0 ]; then
     echo "Bootstrap script ran successfully."
     # Run the salt-pip install command
-#    echo "Installing Credstash."
-#    salt-pip install credstash
-#    if [ $? -eq 0 ]; then
-#        echo "Corteva Bootstrap Complete."
-#    else
-#        echo "\033[0;31mCredstash install failed.\033[0m"
-#        exit 1
-#    fi
+    echo "Installing Credstash."
+    salt-pip install credstash
+    if [ $? -eq 0 ]; then
+        echo "Corteva Bootstrap Complete."
+    else
+        echo "\033[0;31mCredstash install failed.\033[0m"
+        exit 1
+    fi
 else
     echo "\033[0;31mBootstrap script failed.\033[0m"
     exit 1

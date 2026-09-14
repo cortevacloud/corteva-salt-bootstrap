@@ -82,33 +82,32 @@ Write-Host "Clean up the temporary file"
 # Clean up the temporary file
 Remove-Item -Path $tempScriptPath
 
-# Credstash install disabled unused here
-# # Check For Salt Pip and Install Credstash
-# $path = "C:\Program Files\Salt Project\Salt\salt-pip.exe"
-# $timeout = 300  # Timeout in seconds
-# $interval = 5   # Interval between checks in seconds
-# $elapsed = 0
-#
-# while (-not (Test-Path $path) -and ($elapsed -lt $timeout)) {
-#     Write-Host "Waiting for $path to become valid..."  -ForegroundColor Yellow
-#     Start-Sleep -Seconds $interval
-#     $elapsed += $interval
-# }
-#
-# if (Test-Path $path) {
-#     Write-Host "$path is now valid."
-#     # Proceed with your command
-#     $saltPipInstall = Start-Process -FilePath $path -WorkingDirectory "C:\Program Files\Salt Project\Salt" -ArgumentList "install credstash" -NoNewWindow -Wait -PassThru
-#     if ($saltPipInstall.ExitCode -ne 0) {
-#         Write-Host "Credstash install failed with exit code $($saltPipInstall.ExitCode)" -ForegroundColor Red
-#         exit 1
-#     } else {
-#         Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Yellow
-#         Write-Host "Credstash install succeeded" -ForegroundColor Green
-#         Write-Host "===============================================================================" -ForegroundColor Yellow
-#     }
-# } else {
-#     Write-Host "Timeout reached. $path is still not valid."  -ForegroundColor Red
-#     exit 1
-# }
+# Check For Salt Pip and Install Credstash
+$path = "C:\Program Files\Salt Project\Salt\salt-pip.exe"
+$timeout = 300  # Timeout in seconds
+$interval = 5   # Interval between checks in seconds
+$elapsed = 0
+
+while (-not (Test-Path $path) -and ($elapsed -lt $timeout)) {
+    Write-Host "Waiting for $path to become valid..."  -ForegroundColor Yellow
+    Start-Sleep -Seconds $interval
+    $elapsed += $interval
+}
+
+if (Test-Path $path) {
+    Write-Host "$path is now valid."
+    # Proceed with your command
+    $saltPipInstall = Start-Process -FilePath $path -WorkingDirectory "C:\Program Files\Salt Project\Salt" -ArgumentList "install credstash" -NoNewWindow -Wait -PassThru
+    if ($saltPipInstall.ExitCode -ne 0) {
+        Write-Host "Credstash install failed with exit code $($saltPipInstall.ExitCode)" -ForegroundColor Red
+        exit 1
+    } else {
+        Write-Host "-------------------------------------------------------------------------------" -ForegroundColor Yellow
+        Write-Host "Credstash install succeeded" -ForegroundColor Green
+        Write-Host "===============================================================================" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Timeout reached. $path is still not valid."  -ForegroundColor Red
+    exit 1
+}
 exit 0
